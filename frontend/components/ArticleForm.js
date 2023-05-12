@@ -12,7 +12,15 @@ export default function ArticleForm(props) {
     // Every time the `currentArticle` prop changes, we should check it for truthiness:
     // if it's truthy, we should set its title, text and topic into the corresponding
     // values of the form. If it's not, we should reset the form back to initial values.
-  })
+    if(props.currentArticleId){
+      setValues({ title: props.articles[props.currentArticleId - 1].title, 
+        text: props.articles[props.currentArticleId - 1].text, 
+        topic: props.articles[props.currentArticleId - 1].topic
+      })
+    } else if(props.currentArticleId === false){
+      console.log("current article id is false")
+    }
+  }, [props.currentArticleId])
 
   const onChange = evt => {
     const { id, value } = evt.target
@@ -24,11 +32,23 @@ export default function ArticleForm(props) {
     // ✨ implement
     // We must submit a new post or update an existing one,
     // depending on the truthyness of the `currentArticle` prop.
+    if(props.articles[props.currentArticleId -1]){
+      props.updateArticle({ article_id: props.currentArticleId, values: values});
+      setValues(initialFormValues);
+    }else if(!props.articles[props.currentArticleId -1]){
+      props.postArticle(values);
+    }
+    setValues(initialFormValues);
   }
 
   const isDisabled = () => {
     // ✨ implement
     // Make sure the inputs have some values
+    if(values.title.trim().length >=1 && values.text.trim().length >=1 && [values.topic === "React" || "JavaScript" || "Node"]){
+      return false;
+    } else {
+      return true;
+    }
   }
 
   return (

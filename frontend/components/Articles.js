@@ -16,6 +16,12 @@ export default function Articles(props) {
     props.getArticles();
   },[]);
 
+  //build functions here to get edit working. i think you need to find an id and then use the id to grab from state and populate form values
+
+  const editArticle = (Id) => {
+    props.setCurrentArticleId(Id);
+  }
+
   return (
     // ✨ fix the JSX: replace `Function.prototype` with actual functions
     // and use the articles prop to generate articles
@@ -33,8 +39,8 @@ export default function Articles(props) {
                   <p>Topic: {art.topic}</p>
                 </div>
                 <div>
-                  <button disabled={true} onClick={Function.prototype}>Edit</button>
-                  <button disabled={true} onClick={Function.prototype}>Delete</button>
+                  <button disabled={false} onClick={() => editArticle(art.article_id)}>Edit</button>
+                  <button disabled={false} onClick={() => props.deleteArticle(art.article_id)}>Delete</button>
                 </div>
               </div>
             )

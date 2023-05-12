@@ -20,8 +20,8 @@ export default function App() {
 
   // ✨ Research `useNavigate` in React Router v.6
   const navigate = useNavigate()
-  const redirectToLogin = () => { /* ✨ implement */ }
-  const redirectToArticles = () => { /* ✨ implement */ }
+  const redirectToLogin = () => { /* ✨ implement */ navigate("/")}
+  const redirectToArticles = () => { /* ✨ implement */ navigate("/articles")}
 
   const logout = () => {
     // ✨ implement
@@ -33,7 +33,7 @@ export default function App() {
       localStorage.removeItem("token");
       setMessage("Goodbye!");
     }
-    navigate("/");
+    redirectToLogin();
   }
 
   const login = ({ username, password }) => {
@@ -50,7 +50,7 @@ export default function App() {
       .then(res => {
         setMessage(res.data.message);
         localStorage.setItem("token", res.data.token);
-        navigate("/articles");
+        redirectToArticles();
         setSpinnerOn(false);
       })
       .catch(err => {
@@ -76,30 +76,81 @@ export default function App() {
       }
     })
       .then(res => {
-        console.log(res);
         setMessage(res.data.message);
         setArticles(res.data.articles);
       })
       .catch(err => {
         console.log(err);
+        redirectToLogin();
       })
     setSpinnerOn(false);
   }
 
-  const postArticle = article => {
+  const postArticle = (values) => {
     // ✨ implement
     // The flow is very similar to the `getArticles` function.
     // You'll know what to do! Use log statements or breakpoints
     // to inspect the response from the server.
+    const token = localStorage.getItem("token");
+    const payload = { "title": values.title, "text": values.text, "topic": values.topic };
+    axios.post("http://localhost:9000/api/articles", payload, {
+      headers: {
+        authorization: token
+      }
+    })
+      .then(res => {
+        console.log(res);
+        setMessage(res.data.message);
+        setArticles([...articles, res.data.article]);
+      })
+      .catch(err => {
+        console.log("error: ", err)
+      })
   }
 
-  const updateArticle = ({ article_id, article }) => {
+  const updateArticle = ({ article_id, values }) => {
     // ✨ implement
     // You got this!
+    const token = localStorage.getItem("token");
+    const payload = values;
+    const newArticles = [...articles];
+    axios.put(`http://localhost:9000/api/articles/${article_id}`, payload, {
+      headers: {
+        authorization: token
+      }
+    })
+    .then(res => {
+      console.log(res);
+      setMessage(res.data.message);
+      newArticles[article_id - 1] = res.data.article;
+      setArticles(newArticles);
+    })
+    .catch(err => {
+      console.log(err);
+    })
   }
 
   const deleteArticle = article_id => {
     // ✨ implement
+    
+    const token = localStorage.getItem("token");
+    axios.delete(`http://localhost:9000/api/articles/${article_id}`, {
+      headers: {
+        authorization: token
+      }
+    })
+      .then(res => {
+        console.log(res);
+        setMessage(res.data.message);
+        const newArticles = articles.filter(article => {
+          return article.article_id !== article_id;
+        });
+        setArticles(newArticles);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+    
   }
 
   return (
@@ -119,8 +170,8 @@ export default function App() {
           <Route element={<PrivateRoute setMessage={setMessage} />}>
             <Route path="articles" element={
               <>
-                <ArticleForm />
-                <Articles getArticles={getArticles} articles={articles} />
+                <ArticleForm postArticle={postArticle} updateArticle={updateArticle} setCurrentArticleId={setCurrentArticleId} currentArticleId={currentArticleId} articles={articles}/>
+                <Articles getArticles={getArticles} articles={articles} setCurrentArticleId={setCurrentArticleId} deleteArticle={deleteArticle}/>
               </>
             } />
           </Route>
